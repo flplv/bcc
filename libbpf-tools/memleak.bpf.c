@@ -445,7 +445,16 @@ int memleak__mm_page_free(struct trace_event_raw_mm_page_free *ctx)
 SEC("tracepoint/percpu/percpu_alloc_percpu")
 int memleak__percpu_alloc_percpu(struct trace_event_raw_percpu_alloc_percpu *ctx)
 {
-	gen_alloc_enter(ctx->bytes_alloc);
+	size_t bytes_alloc;
+
+	if (has_percpu_alloc_percpu_bytes_alloc()) {
+		struct trace_event_raw_percpu_alloc_percpu___x * args = ctx;
+		bytes_alloc = BPF_CORE_READ(args, bytes_alloc);
+	} else {
+		bytes_alloc = ctx->size;
+	}
+
+	gen_alloc_enter(bytes_alloc);
 
 	return gen_alloc_exit2(ctx, (u64)(ctx->ptr));
 }

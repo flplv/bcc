@@ -249,4 +249,21 @@ static __always_inline __u64 get_sock_ident(struct sock *sk)
 	return (__u64)sk;
 }
 
+/**
+ * commit f67bed134a05("percpu: improve percpu_alloc_percpu event trace")
+ * adds bytes_alloc field to the trace struct, which went mainstream on v5.19-rc1
+ * see:
+ *    https://github.com/torvalds/linux/commit/f67bed134a05
+ */
+struct trace_event_raw_percpu_alloc_percpu___x {
+    const void* ptr;
+    size_t bytes_alloc;
+} __attribute__((preserve_access_index));
+
+static __always_inline bool has_percpu_alloc_percpu_bytes_alloc(void) {
+    if (bpf_core_field_exists(struct trace_event_raw_percpu_alloc_percpu___x, bytes_alloc))
+        return true;
+    return false;
+}
+
 #endif /* __CORE_FIXES_BPF_H */
